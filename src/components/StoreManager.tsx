@@ -7,19 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, MapPin, Phone } from 'lucide-react';
+import { Trash2, Edit, Plus, MapPin, Phone, Loader2 } from 'lucide-react';
 import { Store } from '@/types/store';
-import { toast } from '@/hooks/use-toast';
+import { useStores } from '@/hooks/useStores';
 
-interface StoreManagerProps {
-  stores: Store[];
-  onStoresUpdate: (stores: Store[]) => void;
-}
-
-const StoreManager: React.FC<StoreManagerProps> = ({ stores, onStoresUpdate }) => {
+const StoreManager: React.FC = () => {
+  const { stores, createStore, updateStore, deleteStore, isCreating, isUpdating, isDeleting } = useStores();
   const [editingStore, setEditingStore] = useState<Store | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [formData, setFormData] = useState<Store>({
+  const [formData, setFormData] = useState<Omit<Store, 'id' | 'created_at' | 'updated_at'>>({
     cidade: '',
     estado: 'PR',
     endereco: '',
@@ -40,21 +36,10 @@ const StoreManager: React.FC<StoreManagerProps> = ({ stores, onStoresUpdate }) =
     };
 
     if (editingStore) {
-      const updatedStores = stores.map(store => 
-        store === editingStore ? finalFormData : store
-      );
-      onStoresUpdate(updatedStores);
-      toast({
-        title: "Loja atualizada!",
-        description: `${finalFormData.cidade} foi atualizada com sucesso.`,
-      });
+      updateStore({ id: editingStore.id, ...finalFormData });
       setEditingStore(null);
     } else {
-      onStoresUpdate([...stores, finalFormData]);
-      toast({
-        title: "Loja adicionada!",
-        description: `${finalFormData.cidade} foi adicionada com sucesso.`,
-      });
+      createStore(finalFormData);
       setIsAdding(false);
     }
 
@@ -69,17 +54,20 @@ const StoreManager: React.FC<StoreManagerProps> = ({ stores, onStoresUpdate }) =
 
   const handleEdit = (store: Store) => {
     setEditingStore(store);
-    setFormData(store);
+    setFormData({
+      cidade: store.cidade,
+      estado: store.estado,
+      endereco: store.endereco,
+      telefone: store.telefone,
+      whatsapp: store.whatsapp
+    });
     setIsAdding(true);
   };
 
-  const handleDelete = (storeToDelete: Store) => {
-    const updatedStores = stores.filter(store => store !== storeToDelete);
-    onStoresUpdate(updatedStores);
-    toast({
-      title: "Loja removida!",
-      description: `${storeToDelete.cidade} foi removida com sucesso.`,
-    });
+  const handleDelete = (store: Store) => {
+    if (window.confirm(`Tem certeza que deseja excluir a loja de ${store.cidade}?`)) {
+      deleteStore(store.id);
+    }
   };
 
   const cancelEdit = () => {
@@ -129,16 +117,26 @@ const StoreManager: React.FC<StoreManagerProps> = ({ stores, onStoresUpdate }) =
             size="sm"
             onClick={() => handleEdit(store)}
             className="flex-1"
+            disabled={isUpdating}
           >
-            <Edit className="h-4 w-4 mr-1" />
+            {isUpdating && editingStore?.id === store.id ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <Edit className="h-4 w-4 mr-1" />
+            )}
             Editar
           </Button>
           <Button
             variant="destructive"
             size="sm"
             onClick={() => handleDelete(store)}
+            disabled={isDeleting}
           >
-            <Trash2 className="h-4 w-4" />
+            {isDeleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </CardContent>
@@ -152,8 +150,13 @@ const StoreManager: React.FC<StoreManagerProps> = ({ stores, onStoresUpdate }) =
         <Button 
           onClick={() => setIsAdding(true)}
           className="bg-blue-600 hover:bg-blue-700"
+          disabled={isCreating}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          {isCreating ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Plus className="h-4 w-4 mr-2" />
+          )}
           Nova Loja
         </Button>
       </div>
@@ -231,7 +234,14 @@ const StoreManager: React.FC<StoreManagerProps> = ({ stores, onStoresUpdate }) =
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                <Button 
+                  type="submit" 
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={isCreating || isUpdating}
+                >
+                  {(isCreating || isUpdating) ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : null}
                   {editingStore ? 'Atualizar' : 'Adicionar'} Loja
                 </Button>
                 <Button type="button" variant="outline" onClick={cancelEdit}>
@@ -255,16 +265,16 @@ const StoreManager: React.FC<StoreManagerProps> = ({ stores, onStoresUpdate }) =
 
         <TabsContent value="pr" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {prStores.map((store, index) => (
-              <StoreCard key={index} store={store} />
+            {prStores.map((store) => (
+              <StoreCard key={store.id} store={store} />
             ))}
           </div>
         </TabsContent>
 
         <TabsContent value="sp" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {spStores.map((store, index) => (
-              <StoreCard key={index} store={store} />
+            {spStores.map((store) => (
+              <StoreCard key={store.id} store={store} />
             ))}
           </div>
         </TabsContent>

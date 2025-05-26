@@ -1,40 +1,39 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { toast } from '@/hooks/use-toast';
 import StoreManager from '@/components/StoreManager';
 import FlyerPreview from '@/components/FlyerPreview';
-import { Store } from '@/types/store';
-import { initialStoresData } from '@/data/stores';
+import { useStores } from '@/hooks/useStores';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
-  const [stores, setStores] = useState<Store[]>([]);
+  const { stores, isLoading, error } = useStores();
   const [selectedState, setSelectedState] = useState<'PR' | 'SP'>('PR');
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    // Import initial data automatically on first load
-    const savedStores = localStorage.getItem('unica_stores');
-    if (!savedStores && !isInitialized) {
-      setStores(initialStoresData);
-      localStorage.setItem('unica_stores', JSON.stringify(initialStoresData));
-      setIsInitialized(true);
-      toast({
-        title: "Dados importados com sucesso!",
-        description: `${initialStoresData.length} lojas foram carregadas automaticamente.`,
-      });
-    } else if (savedStores) {
-      setStores(JSON.parse(savedStores));
-      setIsInitialized(true);
-    }
-  }, [isInitialized]);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-blue-700 text-lg">Carregando dados das lojas...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const saveStores = (updatedStores: Store[]) => {
-    setStores(updatedStores);
-    localStorage.setItem('unica_stores', JSON.stringify(updatedStores));
-  };
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <p className="font-bold">Erro ao carregar dados</p>
+            <p>Ocorreu um erro ao conectar com o banco de dados.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const storesByState = stores.filter(store => store.estado === selectedState);
   const prStores = stores.filter(store => store.estado === 'PR');
@@ -87,20 +86,26 @@ const Index = () => {
           <TabsContent value="preview" className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <div className="flex gap-2">
-                <Button
+                <button
                   onClick={() => setSelectedState('PR')}
-                  variant={selectedState === 'PR' ? 'default' : 'outline'}
-                  className={selectedState === 'PR' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                  className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                    selectedState === 'PR'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                  }`}
                 >
                   Paraná ({prStores.length} lojas)
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={() => setSelectedState('SP')}
-                  variant={selectedState === 'SP' ? 'default' : 'outline'}
-                  className={selectedState === 'SP' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                  className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                    selectedState === 'SP'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
+                  }`}
                 >
                   São Paulo ({spStores.length} lojas)
-                </Button>
+                </button>
               </div>
             </div>
             
@@ -108,7 +113,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="management">
-            <StoreManager stores={stores} onStoresUpdate={saveStores} />
+            <StoreManager />
           </TabsContent>
         </Tabs>
       </div>
