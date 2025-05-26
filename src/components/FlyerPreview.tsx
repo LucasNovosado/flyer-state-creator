@@ -14,19 +14,6 @@ interface FlyerPreviewProps {
 const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
   const flyerRef = useRef<HTMLDivElement>(null);
 
-  // Calculate adaptive layout based on number of stores
-  const getLayoutConfig = (storeCount: number) => {
-    if (storeCount > 20) {
-      return { columns: 4, cardSize: 'small' };
-    } else if (storeCount > 15) {
-      return { columns: 3, cardSize: 'medium' };
-    } else {
-      return { columns: 3, cardSize: 'large' };
-    }
-  };
-
-  const config = getLayoutConfig(stores.length);
-
   const handleExportPDF = async () => {
     try {
       const html2canvas = (await import('html2canvas')).default;
@@ -122,62 +109,89 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
             <p className="text-xl font-bold mt-1 font-poppins">DE BATERIAS</p>
           </div>
 
-          {/* Main content area */}
-          <div className="p-6 h-full">
-            <div className="text-center mb-8">
+          {/* Main content area with improved spacing */}
+          <div className="px-6 py-6 min-h-0 flex flex-col">
+            <div className="text-center mb-6">
               <h2 className="text-3xl font-bold text-blue-900 mb-3 font-poppins">
                 NOSSAS LOJAS - {state}
               </h2>
               <div className="w-32 h-1 bg-blue-900 mx-auto"></div>
             </div>
 
-            {/* Stores grid */}
-            <div 
-              className={`grid gap-4 h-auto pb-20`}
-              style={{ 
-                gridTemplateColumns: `repeat(${config.columns}, 1fr)`,
-                alignContent: 'start'
-              }}
-            >
-              {stores.map((store, index) => (
-                <div 
-                  key={index} 
-                  className="bg-yellow-300 bg-opacity-40 backdrop-blur-sm rounded-2xl shadow-lg p-5 border border-yellow-200 hover:transform hover:scale-105 hover:shadow-xl transition-all duration-300 ease-in-out"
-                  style={{
-                    backgroundColor: 'rgba(255, 230, 0, 0.3)',
-                    borderRadius: '16px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  }}
-                >
-                  <h3 className="font-semibold text-blue-900 text-base uppercase mb-3 leading-tight font-poppins" style={{ fontWeight: 600, color: '#0A1A5A' }}>
-                    {store.cidade}
-                  </h3>
-                  
-                  <p className="text-gray-800 mb-4 text-sm leading-tight font-poppins" style={{ fontSize: '13px', fontWeight: 400, color: '#333333' }}>
-                    {store.endereco}
-                  </p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-5 w-5 text-blue-600 flex-shrink-0" style={{ width: '20px', height: '20px' }} />
-                      <span className="text-blue-900 font-medium text-sm font-poppins" style={{ fontSize: '13px' }}>
-                        {normalizePhone(store.telefone)}
-                      </span>
-                    </div>
+            {/* Stores grid with improved responsive layout and spacing */}
+            <div className="flex-1 pb-16">
+              <div 
+                className="grid gap-4 auto-rows-max"
+                style={{ 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  alignContent: 'start'
+                }}
+              >
+                {stores.map((store, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-yellow-300 bg-opacity-40 backdrop-blur-sm rounded-2xl shadow-lg p-5 border border-yellow-200 hover:transform hover:scale-102 hover:shadow-xl transition-all duration-300 ease-in-out break-words"
+                    style={{
+                      backgroundColor: 'rgba(255, 230, 0, 0.3)',
+                      borderRadius: '16px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    <h3 
+                      className="font-semibold text-blue-900 text-base uppercase mb-3 leading-tight font-poppins" 
+                      style={{ 
+                        fontWeight: 600, 
+                        color: '#0A1A5A',
+                        fontSize: '16px',
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      {store.cidade}
+                    </h3>
                     
-                    <div className="flex items-center gap-2">
-                      <WhatsAppIcon className="flex-shrink-0" />
-                      <span className="text-green-700 font-medium text-sm font-poppins" style={{ fontSize: '13px' }}>
-                        {store.whatsapp}
-                      </span>
+                    <p 
+                      className="text-gray-800 mb-4 text-sm leading-tight font-poppins break-words" 
+                      style={{ 
+                        fontSize: '13px', 
+                        fontWeight: 400, 
+                        color: '#333333',
+                        overflowWrap: 'break-word'
+                      }}
+                    >
+                      {store.endereco}
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-5 w-5 text-blue-600 flex-shrink-0" style={{ width: '20px', height: '20px' }} />
+                        <span className="text-blue-900 font-medium text-sm font-poppins break-words" style={{ fontSize: '13px' }}>
+                          {normalizePhone(store.telefone)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <WhatsAppIcon className="flex-shrink-0" />
+                        <span className="text-green-700 font-medium text-sm font-poppins break-words" style={{ fontSize: '13px' }}>
+                          {store.whatsapp}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            {/* Footer */}
-            <div className="absolute bottom-0 left-0 right-0 text-center py-6 bg-gradient-to-t from-yellow-500 to-transparent">
+            {/* Footer with proper spacing and z-index */}
+            <div 
+              className="mt-auto pt-8 text-center bg-gradient-to-t from-yellow-500 to-transparent"
+              style={{ 
+                marginTop: '40px',
+                zIndex: 10,
+                position: 'relative'
+              }}
+            >
               <p className="text-blue-900 font-bold text-xl font-poppins mb-1">
                 QUALIDADE E CONFIANÇA EM BATERIAS
               </p>
@@ -191,7 +205,7 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
 
       <div className="text-center text-gray-600 font-poppins">
         <p>Visualização do panfleto A4 - {stores.length} lojas do {state}</p>
-        <p className="text-sm">Layout otimizado automaticamente para {config.columns} colunas</p>
+        <p className="text-sm">Layout responsivo com espaçamento otimizado</p>
       </div>
     </div>
   );
