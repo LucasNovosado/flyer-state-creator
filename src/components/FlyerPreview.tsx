@@ -11,6 +11,8 @@ interface FlyerPreviewProps {
   state: 'PR' | 'SP';
 }
 
+
+
 const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
   const { stores: allStores } = useStores();
   const flyerRef = useRef<HTMLDivElement>(null);
@@ -66,14 +68,14 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
       return { 
         columns: 3, 
         rows: 6,
-        fontSize: 'text-sm',        // Fonte média
-        titleSize: 'text-lg',
-        contactSize: 'text-base',
+        fontSize: 'text-[17px]',        // Fonte média
+        titleSize: 'text-[22px]',
+        contactSize: 'text-[18px]',
         gap: 'gap-3', 
         padding: 'p-4',
         cardPadding: 'p-3',
         minHeight: 'min-h-[100px]',
-        iconSize: 'h-6 w-6',
+        iconSize: 'h-7 w-7',
         addressToContactSpacing: 'mb-3' // Espaçamento mínimo
 
       };
@@ -94,17 +96,17 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
       };
     } else {
       return { 
-        columns: 6, 
-        rows: Math.ceil(storeCount / 6),
-        fontSize: 'text-xs',        // Fonte muito pequena
-        titleSize: 'text-xs',
-        contactSize: 'text-xs',
-        gap: 'gap-1', 
-        padding: 'p-2',
+        columns: 5, 
+        rows: Math.ceil(storeCount / 7),
+        fontSize: 'text-[13px]',     // 10px
+        titleSize: 'text-[15.5px]',     // 9px  
+        contactSize: 'text-[13.5px]',   // 8px
+        gap: 'gap-2', 
+        padding: 'p-4',
         cardPadding: 'p-2',
-        minHeight: 'min-h-[70px]',
-        iconSize: 'h-2 w-2',
-        addressToContactSpacing: 'mb-1' // Espaçamento mínimo
+        minHeight: 'min-h-[175px]',
+        iconSize: 'h-4 w-4',
+        addressToContactSpacing: 'mb-3' // Espaçamento mínimo
 
       };
     }
@@ -130,7 +132,6 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
 
     // Obter as dimensões reais do elemento
     const element = flyerRef.current;
-    const rect = element.getBoundingClientRect();
     
     // Capturar o elemento com suas dimensões reais
     const canvas = await html2canvas(element, {
@@ -138,7 +139,6 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#FFE600',
-      // Remover width e height fixos para usar as dimensões naturais do elemento
       scrollX: 0,
       scrollY: 0,
       // Garantir que capture todo o conteúdo
@@ -148,14 +148,22 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
 
     const imgData = canvas.toDataURL('image/png', 1.0); // Máxima qualidade
     
-    // Calcular as dimensões do PDF baseadas na proporção A4
-    const pdfWidth = 210; // mm
-    const pdfHeight = 297; // mm
+    // Usar as dimensões originais do canvas para manter proporções
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
     
-    // Criar PDF no tamanho A4
-    const pdf = new jsPDF('portrait', 'mm', 'a4');
+    // Converter pixels para mm (aproximadamente 1px = 0.264583mm)
+    const pdfWidth = canvasWidth * 0.264583;
+    const pdfHeight = canvasHeight * 0.264583;
     
-    // Adicionar a imagem ocupando toda a página A4
+    // Criar PDF com as dimensões proporcionais ao preview
+    const pdf = new jsPDF({
+      orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
+      unit: 'mm',
+      format: [pdfWidth, pdfHeight]
+    });
+    
+    // Adicionar a imagem mantendo as proporções originais
     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
     
     // Salvar o PDF
@@ -163,7 +171,7 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
 
     toast({
       title: "PDF gerado com sucesso!",
-      description: `Panfleto do ${state} foi exportado e está pronto para impressão.`,
+      description: `Panfleto do ${state} foi exportado mantendo as proporções originais.`,
     });
   } catch (error) {
     console.error('Error generating PDF:', error);
@@ -195,7 +203,7 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
       <Card className="max-w-4xl mx-auto overflow-hidden shadow-2xl">
         <div 
           ref={flyerRef}
-          className="bg-yellow-400 aspect-[210/297] w-full max-w-[794px] mx-auto relative flex flex-col font-poppins"
+          className="bg-yellow-400 aspect-[210/297] w-full max-w-[904px] mx-auto relative flex flex-col font-poppins"
           style={{ 
             backgroundColor: '#FFE600',
             fontFamily: 'Poppins, system-ui, -apple-system, sans-serif'
@@ -259,7 +267,7 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
                   className={`bg-yellow-200 bg-opacity-80 rounded-lg shadow-lg ${config.cardPadding} border-2 border-yellow-300 backdrop-blur-sm flex flex-col justify-between transition-all hover:bg-opacity-90 hover:shadow-xl ${config.minHeight}`}
                 >
                   <div className="flex-1">
-  <h3 className={`font-black text-blue-900 ${config.titleSize} uppercase mb-2 leading-tight font-poppins`}>
+  <h3 className={`font-black text-blue-900 ${config.titleSize} uppercase mb-0.5 leading-tight font-poppins`}>
     {store.cidade}
   </h3>
   <p className={`text-gray-700 leading-relaxed font-poppins ${config.fontSize} ${config.addressToContactSpacing}`}>
@@ -300,8 +308,8 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
 
             {/* Footer fixo na parte inferior */}
             <div className="text-center mt-4 pt-3 border-t-2 border-blue-900 flex-shrink-0">
-              <p className="text-blue-900 font-bold text-lg leading-tight font-poppins">
-A MAIOR REDE DE LOJAS DE BATERIAS AUTOMOTIVAS DO BRASIL              </p>
+              <p className="text-blue-900 font-bold text-[23px] leading-tight font-poppins">
+A MAIOR REDE DE LOJAS DE BATERIAS AUTOMOTIVAS DO BRASIL             </p>
               <br></br>
             </div>
           </div>
