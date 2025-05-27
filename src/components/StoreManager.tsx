@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,11 +82,11 @@ const StoreManager: React.FC = () => {
   };
 
   const StoreCard = ({ store }: { store: Store }) => (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow font-poppins">
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-lg text-blue-900">{store.cidade}</h3>
-          <Badge variant={store.estado === 'PR' ? 'default' : 'secondary'}>
+          <h3 className="font-bold text-lg text-blue-900 font-poppins">{store.cidade}</h3>
+          <Badge variant={store.estado === 'PR' ? 'default' : 'secondary'} className="font-poppins">
             {store.estado}
           </Badge>
         </div>
@@ -95,19 +94,19 @@ const StoreManager: React.FC = () => {
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2 text-gray-600">
             <MapPin className="h-4 w-4" />
-            <span>{store.endereco}</span>
+            <span className="font-poppins">{store.endereco}</span>
           </div>
           
           <div className="flex items-center gap-2 text-gray-600">
             <Phone className="h-4 w-4" />
-            <span>{store.telefone || "0800 718 0896"}</span>
+            <span className="font-poppins">{store.telefone || "0800 718 0896"}</span>
           </div>
           
           <div className="flex items-center gap-2 text-green-600">
             <div className="h-4 w-4 bg-green-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">W</span>
+              <span className="text-white text-xs font-bold font-poppins">W</span>
             </div>
-            <span>{store.whatsapp}</span>
+            <span className="font-poppins">{store.whatsapp}</span>
           </div>
         </div>
 
@@ -116,7 +115,7 @@ const StoreManager: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => handleEdit(store)}
-            className="flex-1"
+            className="flex-1 font-poppins"
             disabled={isUpdating}
           >
             {isUpdating && editingStore?.id === store.id ? (
@@ -131,6 +130,7 @@ const StoreManager: React.FC = () => {
             size="sm"
             onClick={() => handleDelete(store)}
             disabled={isDeleting}
+            className="font-poppins"
           >
             {isDeleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -144,12 +144,12 @@ const StoreManager: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-poppins">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-blue-900">Gerenciar Lojas</h2>
+        <h2 className="text-2xl font-bold text-blue-900 font-poppins">Gerenciar Lojas</h2>
         <Button 
           onClick={() => setIsAdding(true)}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-blue-600 hover:bg-blue-700 font-poppins"
           disabled={isCreating}
         >
           {isCreating ? (
@@ -162,9 +162,9 @@ const StoreManager: React.FC = () => {
       </div>
 
       {isAdding && (
-        <Card>
+        <Card className="font-poppins">
           <CardHeader>
-            <CardTitle>
+            <CardTitle className="font-poppins">
               {editingStore ? 'Editar Loja' : 'Adicionar Nova Loja'}
             </CardTitle>
           </CardHeader>
@@ -172,25 +172,26 @@ const StoreManager: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="cidade">Cidade *</Label>
+                  <Label htmlFor="cidade" className="font-poppins">Cidade *</Label>
                   <Input
                     id="cidade"
                     value={formData.cidade}
                     onChange={(e) => setFormData({...formData, cidade: e.target.value})}
                     required
+                    className="font-poppins"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="estado">Estado *</Label>
+                  <Label htmlFor="estado" className="font-poppins">Estado *</Label>
                   <Select
                     value={formData.estado}
                     onValueChange={(value: 'PR' | 'SP') => setFormData({...formData, estado: value})}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="font-poppins">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="font-poppins">
                       <SelectItem value="PR">Paraná</SelectItem>
                       <SelectItem value="SP">São Paulo</SelectItem>
                     </SelectContent>
@@ -199,36 +200,39 @@ const StoreManager: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="endereco">Endereço *</Label>
+                <Label htmlFor="endereco" className="font-poppins">Endereço *</Label>
                 <Input
                   id="endereco"
                   value={formData.endereco}
                   onChange={(e) => setFormData({...formData, endereco: e.target.value})}
                   required
+                  className="font-poppins"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="telefone">Telefone Fixo</Label>
+                  <Label htmlFor="telefone" className="font-poppins">Telefone Fixo</Label>
                   <Input
                     id="telefone"
                     value={formData.telefone}
                     onChange={(e) => setFormData({...formData, telefone: e.target.value})}
                     placeholder="0800 718 0896 (padrão)"
+                    className="font-poppins"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1 font-poppins">
                     Se vazio, será preenchido automaticamente com 0800 718 0896
                   </p>
                 </div>
                 
                 <div>
-                  <Label htmlFor="whatsapp">WhatsApp *</Label>
+                  <Label htmlFor="whatsapp" className="font-poppins">WhatsApp *</Label>
                   <Input
                     id="whatsapp"
                     value={formData.whatsapp}
                     onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
                     required
+                    className="font-poppins"
                   />
                 </div>
               </div>
@@ -236,7 +240,7 @@ const StoreManager: React.FC = () => {
               <div className="flex gap-2 pt-4">
                 <Button 
                   type="submit" 
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 font-poppins"
                   disabled={isCreating || isUpdating}
                 >
                   {(isCreating || isUpdating) ? (
@@ -244,7 +248,7 @@ const StoreManager: React.FC = () => {
                   ) : null}
                   {editingStore ? 'Atualizar' : 'Adicionar'} Loja
                 </Button>
-                <Button type="button" variant="outline" onClick={cancelEdit}>
+                <Button type="button" variant="outline" onClick={cancelEdit} className="font-poppins">
                   Cancelar
                 </Button>
               </div>
@@ -254,11 +258,11 @@ const StoreManager: React.FC = () => {
       )}
 
       <Tabs defaultValue="pr" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="pr">
+        <TabsList className="grid w-full grid-cols-2 font-poppins">
+          <TabsTrigger value="pr" className="font-poppins">
             Paraná ({prStores.length} lojas)
           </TabsTrigger>
-          <TabsTrigger value="sp">
+          <TabsTrigger value="sp" className="font-poppins">
             São Paulo ({spStores.length} lojas)
           </TabsTrigger>
         </TabsList>
