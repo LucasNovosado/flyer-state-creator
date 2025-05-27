@@ -28,7 +28,9 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
         padding: 'p-8',
         cardPadding: 'p-6',
         minHeight: 'min-h-[200px]', // Cards bem altos
-        iconSize: 'h-5 w-5'
+        iconSize: 'h-5 w-5',
+        addressToContactSpacing: 'mb-4' // Espaçamento mínimo
+
       };
     } else if (storeCount <= 8) {
       return { 
@@ -41,7 +43,9 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
         padding: 'p-6',
         cardPadding: 'p-5',
         minHeight: 'min-h-[150px]',
-        iconSize: 'h-4 w-4'
+        iconSize: 'h-4 w-4',
+        addressToContactSpacing: 'mb-3' // Espaçamento mínimo
+
       };
     } else if (storeCount <= 12) {
       return { 
@@ -54,20 +58,24 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
         padding: 'p-5',
         cardPadding: 'p-4',
         minHeight: 'min-h-[120px]',
-        iconSize: 'h-4 w-4'
+        iconSize: 'h-4 w-4',
+        addressToContactSpacing: 'mb-3' // Espaçamento mínimo
+
       };
     } else if (storeCount <= 20) {
       return { 
-        columns: 4, 
-        rows: 5,
+        columns: 3, 
+        rows: 6,
         fontSize: 'text-sm',        // Fonte média
-        titleSize: 'text-base',
-        contactSize: 'text-xs',
+        titleSize: 'text-lg',
+        contactSize: 'text-base',
         gap: 'gap-3', 
         padding: 'p-4',
         cardPadding: 'p-3',
         minHeight: 'min-h-[100px]',
-        iconSize: 'h-3 w-3'
+        iconSize: 'h-6 w-6',
+        addressToContactSpacing: 'mb-3' // Espaçamento mínimo
+
       };
     } else if (storeCount <= 30) {
       return { 
@@ -80,7 +88,9 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
         padding: 'p-3',
         cardPadding: 'p-2',
         minHeight: 'min-h-[85px]',
-        iconSize: 'h-3 w-3'
+        iconSize: 'h-3 w-3',
+        addressToContactSpacing: 'mb-1' // Espaçamento mínimo
+
       };
     } else {
       return { 
@@ -93,7 +103,9 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
         padding: 'p-2',
         cardPadding: 'p-2',
         minHeight: 'min-h-[70px]',
-        iconSize: 'h-2 w-2'
+        iconSize: 'h-2 w-2',
+        addressToContactSpacing: 'mb-1' // Espaçamento mínimo
+
       };
     }
   };
@@ -105,48 +117,63 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
   };
 
   const handleExportPDF = async () => {
-    try {
-      const html2canvas = (await import('html2canvas')).default;
-      const jsPDF = (await import('jspdf')).default;
+  try {
+    const html2canvas = (await import('html2canvas')).default;
+    const jsPDF = (await import('jspdf')).default;
 
-      if (!flyerRef.current) return;
+    if (!flyerRef.current) return;
 
-      toast({
-        title: "Gerando PDF...",
-        description: "Aguarde enquanto preparamos seu panfleto.",
-      });
+    toast({
+      title: "Gerando PDF...",
+      description: "Aguarde enquanto preparamos seu panfleto.",
+    });
 
-      const canvas = await html2canvas(flyerRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFE600',
-        width: 794,
-        height: 1123,
-      });
+    // Obter as dimensões reais do elemento
+    const element = flyerRef.current;
+    const rect = element.getBoundingClientRect();
+    
+    // Capturar o elemento com suas dimensões reais
+    const canvas = await html2canvas(element, {
+      scale: 2, // Alta qualidade
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#FFE600',
+      // Remover width e height fixos para usar as dimensões naturais do elemento
+      scrollX: 0,
+      scrollY: 0,
+      // Garantir que capture todo o conteúdo
+      height: element.scrollHeight,
+      width: element.scrollWidth
+    });
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('portrait', 'mm', 'a4');
-      
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`panfleto-rede-unica-${state.toLowerCase()}.pdf`);
+    const imgData = canvas.toDataURL('image/png', 1.0); // Máxima qualidade
+    
+    // Calcular as dimensões do PDF baseadas na proporção A4
+    const pdfWidth = 210; // mm
+    const pdfHeight = 297; // mm
+    
+    // Criar PDF no tamanho A4
+    const pdf = new jsPDF('portrait', 'mm', 'a4');
+    
+    // Adicionar a imagem ocupando toda a página A4
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    
+    // Salvar o PDF
+    pdf.save(`panfleto-rede-unica-${state.toLowerCase()}.pdf`);
 
-      toast({
-        title: "PDF gerado com sucesso!",
-        description: `Panfleto do ${state} foi exportado e está pronto para impressão.`,
-      });
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast({
-        title: "Erro ao gerar PDF",
-        description: "Ocorreu um erro durante a exportação. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
+    toast({
+      title: "PDF gerado com sucesso!",
+      description: `Panfleto do ${state} foi exportado e está pronto para impressão.`,
+    });
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    toast({
+      title: "Erro ao gerar PDF",
+      description: "Ocorreu um erro durante a exportação. Tente novamente.",
+      variant: "destructive",
+    });
+  }
+};
 
   const normalizePhone = (phone: string) => {
     return phone.trim() || "0800 718 0896";
@@ -201,10 +228,10 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
               <div className="flex-shrink-0 ml-6">
                 <div className="bg-yellow-400 rounded-lg px-4 py-3 border border-yellow-500 shadow-sm min-w-[160px]">
                   <div className="text-center">
-                    <div className="text-2xl font-black text-blue-900 leading-none font-poppins">
+                    <div className="text-2xl font-black text-blue-900 leading-none font-poppins" style={{ lineHeight: '0.6' }}>
                       {allStores.length} Lojas
                     </div>
-                    <div className="text-xs font-bold text-blue-800 uppercase tracking-wide mt-1 font-poppins">
+                    <div className="text-xs font-bold text-blue-800 uppercase tracking-wide mt-1 font-poppins" style={{ lineHeight: '2.5' }}>
                       para lhe atender melhor!
                     </div>
                   </div>
@@ -232,29 +259,37 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
                   className={`bg-yellow-200 bg-opacity-80 rounded-lg shadow-lg ${config.cardPadding} border-2 border-yellow-300 backdrop-blur-sm flex flex-col justify-between transition-all hover:bg-opacity-90 hover:shadow-xl ${config.minHeight}`}
                 >
                   <div className="flex-1">
-                    <h3 className={`font-black text-blue-900 ${config.titleSize} uppercase mb-2 leading-tight font-poppins`}>
-                      {store.cidade}
-                    </h3>
-                    <p className={`text-gray-700 mb-1 leading-relaxed font-poppins ${config.fontSize}`}>
-                      {store.endereco}
-                    </p>
-                  </div>
+  <h3 className={`font-black text-blue-900 ${config.titleSize} uppercase mb-2 leading-tight font-poppins`}>
+    {store.cidade}
+  </h3>
+  <p className={`text-gray-700 leading-relaxed font-poppins ${config.fontSize} ${config.addressToContactSpacing}`}>
+    {store.endereco}
+  </p>
+</div>
                   
+                  
+
                   <div className="space-y-2 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                      <Phone className={`text-blue-600 flex-shrink-0 ${config.iconSize}`} />
-                      <span className={`text-blue-900 font-semibold leading-tight font-poppins ${config.contactSize}`}>
+                    {/* Container de telefone com alinhamento aprimorado */}
+                    <div className="flex items-start gap-2">
+                      <div className="flex-shrink-0 pt-0.5">
+                        <Phone className={`text-blue-600 ${config.iconSize}`} />
+                      </div>
+                      <span className={`text-blue-900 font-semibold leading-tight font-poppins ${config.contactSize} flex-1`} style={{ lineHeight: '0.5' }}>
                         {normalizePhone(store.telefone)}
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <img 
-                        src="/wpp.webp" 
-                        alt="WhatsApp" 
-                        className={`flex-shrink-0 ${config.iconSize}`}
-                      />
-                      <span className={`text-green-700 font-semibold leading-tight font-poppins ${config.contactSize}`}>
+                    {/* Container de WhatsApp com alinhamento aprimorado */}
+                    <div className="flex items-start gap-2">
+                      <div className="flex-shrink-0 pt-0.5">
+                        <img 
+                          src="/wpp.webp" 
+                          alt="WhatsApp" 
+                          className={`${config.iconSize}`}
+                        />
+                      </div>
+                      <span className={`text-green-700 font-semibold leading-tight font-poppins ${config.contactSize} flex-1`} style={{ lineHeight: '0.5' }}>
                         {store.whatsapp}
                       </span>
                     </div>
@@ -266,11 +301,8 @@ const FlyerPreview: React.FC<FlyerPreviewProps> = ({ stores, state }) => {
             {/* Footer fixo na parte inferior */}
             <div className="text-center mt-4 pt-3 border-t-2 border-blue-900 flex-shrink-0">
               <p className="text-blue-900 font-bold text-lg leading-tight font-poppins">
-                QUALIDADE E CONFIANÇA EM BATERIAS
-              </p>
-              <p className="text-blue-800 font-semibold text-sm font-poppins">
-                www.redeunica.com.br
-              </p>
+A MAIOR REDE DE LOJAS DE BATERIAS AUTOMOTIVAS DO BRASIL              </p>
+              <br></br>
             </div>
           </div>
         </div>
